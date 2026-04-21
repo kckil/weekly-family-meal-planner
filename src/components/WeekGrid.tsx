@@ -1,4 +1,4 @@
-import { useState, type DragEvent } from 'react';
+import { useState, useCallback, useRef, type DragEvent } from 'react';
 import type { Meal, WeeklyPlan } from '../types';
 import { DAYS, DAYS_LONG } from '../utils/data';
 import { TypeDot, Icons } from './ui';
@@ -21,6 +21,16 @@ interface WeekGridProps {
 export function WeekGrid({ plan, meals, onDropMeal, onClear, onSwap, dragState, setDragState }: WeekGridProps) {
   const cols = '140px repeat(6, minmax(0, 1fr))';
   const rows = ['breakfast', 'lunch', 'dinner'];
+  const [flashSlots, setFlashSlots] = useState<Set<string>>(new Set());
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSwap = useCallback((fromDay: string, fromRow: string, toDay: string, toRow: string) => {
+    onSwap(fromDay, fromRow, toDay, toRow);
+    const keys = new Set([`${fromDay}:${fromRow}`, `${toDay}:${toRow}`]);
+    setFlashSlots(keys);
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setFlashSlots(new Set()), 600);
+  }, [onSwap]);
   return (
     <div style={{
       background: 'var(--paper)', border: '1px solid var(--line)',
@@ -52,8 +62,9 @@ export function WeekGrid({ plan, meals, onDropMeal, onClear, onSwap, dragState, 
           </div>
           {DAYS.map(d => (
             <Slot key={d + row} day={d} row={row} plan={plan} meals={meals}
-              onDropMeal={onDropMeal} onClear={onClear} onSwap={onSwap}
-              dragState={dragState} setDragState={setDragState}/>
+              onDropMeal={onDropMeal} onClear={onClear} onSwap={handleSwap}
+              dragState={dragState} setDragState={setDragState}
+              flash={flashSlots.has(`${d}:${row}`)}/>
           ))}
         </div>
       ))}
@@ -61,13 +72,14 @@ export function WeekGrid({ plan, meals, onDropMeal, onClear, onSwap, dragState, 
   );
 }
 
-function Slot({ day, row, plan, meals, onDropMeal, onClear, onSwap, dragState, setDragState }: {
+function Slot({ day, row, plan, meals, onDropMeal, onClear, onSwap, dragState, setDragState, flash }: {
   day: string; row: string; plan: WeeklyPlan; meals: Meal[];
   onDropMeal: (day: string, row: string, mealId: string) => void;
   onClear: (day: string, row: string) => void;
   onSwap: (fromDay: string, fromRow: string, toDay: string, toRow: string) => void;
   dragState: DragState | null;
   setDragState: (s: DragState | null) => void;
+  flash: boolean;
 }) {
   const dayPlan = plan.days.find(d => d.day === day);
   const [over, setOver] = useState(false);
@@ -132,20 +144,22 @@ function Slot({ day, row, plan, meals, onDropMeal, onClear, onSwap, dragState, s
     <div onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}
       style={{ position: 'relative', height, borderRadius: 10, outline: highlightDrop ? '2px solid var(--sage-ink)' : 'none', outlineOffset: 2 }}>
       <SlotCard meal={meal} isLeftover={isLeftover} onClear={() => onClear(day, row)}
-        onDragStart={onSlotDragStart} onDragEnd={onSlotDragEnd}/>
+        onDragStart={onSlotDragStart} onDragEnd={onSlotDragEnd} flash={flash}/>
     </div>
   );
 }
 
-function SlotCard({ meal, isLeftover, onClear, onDragStart, onDragEnd }: {
+function SlotCard({ meal, isLeftover, onClear, onDragStart, onDragEnd, flash }: {
   meal: Meal; isLeftover: boolean; onClear: () => void;
   onDragStart: (e: DragEvent) => void; onDragEnd: () => void;
+  flash: boolean;
 }) {
   const [hover, setHover] = useState(false);
   const canDrag = !isLeftover;
   return (
     <div draggable={canDrag} onDragStart={onDragStart} onDragEnd={onDragEnd}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      className={flash ? 'slot-flash' : ''}
       style={{
         height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center',
         padding: '8px 10px',
