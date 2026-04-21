@@ -34,12 +34,52 @@ npm run dev
 npm test
 ```
 
-## Build & Deploy
+## Local Build
 
 ```bash
 npm run build
-# Output in dist/ — serve statically
 ```
+
+This outputs a production bundle to `dist/`. To preview it locally:
+
+```bash
+npx serve dist
+```
+
+## Deploy to GitHub Pages
+
+The app is configured to deploy from the `gh-pages` branch.
+
+### One-time setup
+
+Install the deploy helper:
+
+```bash
+npm install -D gh-pages
+```
+
+Add a deploy script to `package.json`:
+
+```json
+"scripts": {
+  "deploy": "npm run build && gh-pages -d dist"
+}
+```
+
+### Deploy
+
+```bash
+npm run deploy
+```
+
+This builds the app and pushes the `dist/` folder to the `gh-pages` branch.
+
+Then in the repo settings (Settings > Pages), set:
+- **Source**: Deploy from a branch
+- **Branch**: `gh-pages` / `/ (root)`
+
+The site will be available at:  
+`https://<username>.github.io/weekly-family-meal-planner/`
 
 ## Data Format (CSV Import)
 
