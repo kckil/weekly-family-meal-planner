@@ -30,10 +30,17 @@ export function App() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [impExpOpen, setImpExpOpen] = useState(false);
 
-  // Seed initial meals
+  // Seed initial meals (and merge any new seed entries on update)
   useEffect(() => {
+    const seed = buildInitialMeals();
     if (meals === null) {
-      setMeals(buildInitialMeals());
+      setMeals(seed);
+    } else {
+      const existingNames = new Set(meals.map(m => m.name.toLowerCase()));
+      const newMeals = seed.filter(m => !existingNames.has(m.name.toLowerCase()));
+      if (newMeals.length > 0) {
+        setMeals([...meals, ...newMeals]);
+      }
     }
   }, []);
 
