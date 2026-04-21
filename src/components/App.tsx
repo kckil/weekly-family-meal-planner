@@ -110,6 +110,19 @@ export function App() {
     onToast('New week randomized!');
   };
 
+  const clearAll = () => {
+    if (!plan) return;
+    if (!window.confirm('Clear all meals from this week? This cannot be undone.')) return;
+    setPlan(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        days: prev.days.map(d => ({ ...d, breakfast: null, lunch: null, lunchIsLeftover: false, dinner: null })),
+      };
+    });
+    onToast('Plan cleared');
+  };
+
   const finalize = () => {
     if (!plan || !meals) return;
     const usedIds = new Set<string>();
@@ -184,7 +197,7 @@ export function App() {
             filter={filter} setFilter={setFilter}
             onDropMeal={handleDropMeal} onClear={handleClear}
             onRegenerate={regenerate} onFinalize={finalize}
-            onOpenLibrary={() => setTab('library')}/>
+            onClearAll={clearAll} onOpenLibrary={() => setTab('library')}/>
         )}
         {tab === 'shop' && (
           <ShoppingListView plan={plan} meals={meals} onToast={onToast}

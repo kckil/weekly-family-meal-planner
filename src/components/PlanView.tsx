@@ -21,10 +21,11 @@ interface PlanViewProps {
   onClear: (day: string, row: string) => void;
   onRegenerate: () => void;
   onFinalize: () => void;
+  onClearAll: () => void;
   onOpenLibrary: () => void;
 }
 
-export function PlanView({ plan, meals, dragState, setDragState, filter, setFilter, onDropMeal, onClear, onRegenerate, onFinalize, onOpenLibrary }: PlanViewProps) {
+export function PlanView({ plan, meals, dragState, setDragState, filter, setFilter, onDropMeal, onClear, onRegenerate, onFinalize, onClearAll, onOpenLibrary }: PlanViewProps) {
   const planStats = useMemo(() => {
     const uniqueDinners = new Set(plan.days.map(d => d.dinner).filter(Boolean)).size;
     const filledSlots = plan.days.reduce((n, d) => n + (d.breakfast ? 1 : 0) + (d.dinner ? 1 : 0) + (d.lunch ? 1 : 0), 0);
@@ -44,6 +45,7 @@ export function PlanView({ plan, meals, dragState, setDragState, filter, setFilt
           title={`Week of ${weekRangeLabel(plan.createdAt).split(' – ')[0]}`}
           right={
             <>
+              <Button variant="ghost" size="sm" icon={Icons.X} onClick={onClearAll}>Clear All</Button>
               <Button variant="outline" size="sm" icon={Icons.Sparkle} onClick={onRegenerate}>Surprise Me!</Button>
               <Button variant="primary" size="sm" icon={Icons.Check} onClick={onFinalize} disabled={plan.finalized}>
                 {plan.finalized ? 'Finalized' : 'Finalize plan'}

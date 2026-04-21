@@ -43,6 +43,7 @@ describe('PlanView', () => {
     onClear: vi.fn(),
     onRegenerate: vi.fn(),
     onFinalize: vi.fn(),
+    onClearAll: vi.fn(),
     onOpenLibrary: vi.fn(),
   };
 
