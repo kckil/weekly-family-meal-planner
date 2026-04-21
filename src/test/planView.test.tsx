@@ -77,11 +77,6 @@ describe('PlanView', () => {
     expect(screen.getAllByText('Tacos').length).toBeGreaterThan(0);
   });
 
-  it('shows SHOPPING DAY for Sunday lunch', () => {
-    render(<PlanView {...defaultProps} />);
-    expect(screen.getByText('SHOPPING DAY')).toBeInTheDocument();
-  });
-
   it('shows leftovers indicator', () => {
     render(<PlanView {...defaultProps} />);
     const leftovers = screen.getAllByText('↺ leftovers');

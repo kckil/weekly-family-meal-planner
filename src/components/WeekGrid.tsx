@@ -68,14 +68,12 @@ function Slot({ day, row, plan, meals, onDropMeal, onClear, dragState }: {
   const dayPlan = plan.days.find(d => d.day === day);
   const [over, setOver] = useState(false);
 
-  const isShoppingDay = row === 'lunch' && day === 'Sun';
   const isLeftover = row === 'lunch' && !!dayPlan?.lunchIsLeftover && !!dayPlan?.lunch;
   const mealId = isLeftover ? dayPlan!.lunch : dayPlan?.[row as keyof typeof dayPlan] as string | null;
   const meal = mealId ? meals.find(m => m.id === mealId) : null;
   const acceptsType = row === 'breakfast' ? 'breakfast' : row === 'dinner' ? 'dinner' : null;
 
   const onDragOver = (e: DragEvent) => {
-    if (isShoppingDay) return;
     e.preventDefault();
     setOver(true);
   };
@@ -93,18 +91,6 @@ function Slot({ day, row, plan, meals, onDropMeal, onClear, dragState }: {
 
   const height = 68;
 
-  if (isShoppingDay) {
-    return (
-      <div style={{
-        height, borderRadius: 10, background: 'repeating-linear-gradient(45deg, var(--paper-2) 0 6px, var(--paper) 6px 12px)',
-        border: '1px dashed var(--line-2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'var(--ink-3)', fontSize: 11.5, gap: 6,
-      }}>
-        <span className="mono" style={{ fontSize: 10.5 }}>SHOPPING DAY</span>
-      </div>
-    );
-  }
-
   const highlightDrop = over && (!acceptsType || dragState?.type === acceptsType) || (over && row === 'lunch');
 
   if (!meal) {
@@ -118,7 +104,7 @@ function Slot({ day, row, plan, meals, onDropMeal, onClear, dragState }: {
           color: highlightDrop ? 'var(--sage-ink)' : 'var(--ink-3)',
           fontSize: 12, fontStyle: 'italic', transition: 'background .15s, border-color .15s',
         }}>
-        {highlightDrop ? 'Drop to assign' : 'empty — drag a meal here'}
+        <span style={{ padding: '0 10px' }}>{highlightDrop ? 'Drop to assign' : 'empty — drag a meal here'}</span>
       </div>
     );
   }

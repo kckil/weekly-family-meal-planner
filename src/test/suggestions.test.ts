@@ -36,7 +36,7 @@ describe('suggestPlan', () => {
     }
   });
 
-  it('Sunday has no lunch (shopping day)', () => {
+  it('Sunday lunch starts empty (no previous dinner)', () => {
     const meals = [...makeMeals(10, 'dinner'), ...makeMeals(6, 'breakfast')];
     const plan = suggestPlan(meals);
     expect(plan.days[0].lunch).toBeNull();
