@@ -89,7 +89,7 @@ function Slot({ day, row, plan, meals, onDropMeal, onClear, dragState }: {
     onDropMeal(day, row, id);
   };
 
-  const height = 68;
+  const height = 88;
 
   const highlightDrop = over && (!acceptsType || dragState?.type === acceptsType) || (over && row === 'lunch');
 
@@ -131,7 +131,7 @@ function SlotCard({ meal, isLeftover, onClear }: { meal: Meal; isLeftover: boole
       }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <TypeDot type={meal.type} size={6}/>
-        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>{meal.name}</div>
+        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', flex: 1, lineHeight: 1.3 }}>{meal.name}</div>
       </div>
       <div style={{ fontSize: 10.5, color: 'var(--ink-3)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {isLeftover ? '↺ leftovers' : meal.ingredients.slice(0, 3).join(' · ')}
