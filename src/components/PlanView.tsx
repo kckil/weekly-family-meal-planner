@@ -19,13 +19,14 @@ interface PlanViewProps {
   setFilter: (f: string) => void;
   onDropMeal: (day: string, row: string, mealId: string) => void;
   onClear: (day: string, row: string) => void;
+  onSwap: (fromDay: string, fromRow: string, toDay: string, toRow: string) => void;
   onRegenerate: () => void;
   onFinalize: () => void;
   onClearAll: () => void;
   onOpenLibrary: () => void;
 }
 
-export function PlanView({ plan, meals, dragState, setDragState, filter, setFilter, onDropMeal, onClear, onRegenerate, onFinalize, onClearAll, onOpenLibrary }: PlanViewProps) {
+export function PlanView({ plan, meals, dragState, setDragState, filter, setFilter, onDropMeal, onClear, onSwap, onRegenerate, onFinalize, onClearAll, onOpenLibrary }: PlanViewProps) {
   const planStats = useMemo(() => {
     const uniqueDinners = new Set(plan.days.map(d => d.dinner).filter(Boolean)).size;
     const filledSlots = plan.days.reduce((n, d) => n + (d.breakfast ? 1 : 0) + (d.dinner ? 1 : 0) + (d.lunch ? 1 : 0), 0);
@@ -55,7 +56,7 @@ export function PlanView({ plan, meals, dragState, setDragState, filter, setFilt
           <span className="mono">{planStats.uniqueDinners}</span> unique dinners · <span className="mono">{planStats.filledSlots}</span> slots filled · drag meals from the left to swap
         </SectionHeading>
 
-        <WeekGrid plan={plan} meals={meals} onDropMeal={onDropMeal} onClear={onClear} dragState={dragState} setDragState={setDragState}/>
+        <WeekGrid plan={plan} meals={meals} onDropMeal={onDropMeal} onClear={onClear} onSwap={onSwap} dragState={dragState} setDragState={setDragState}/>
 
         <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: 'var(--paper-2)', border: '1px solid var(--line)', borderRadius: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><TypeDot type="breakfast"/> <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>Breakfast</span></div>

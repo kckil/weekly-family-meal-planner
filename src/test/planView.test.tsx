@@ -41,6 +41,7 @@ describe('PlanView', () => {
     setFilter: vi.fn(),
     onDropMeal: vi.fn(),
     onClear: vi.fn(),
+    onSwap: vi.fn(),
     onRegenerate: vi.fn(),
     onFinalize: vi.fn(),
     onClearAll: vi.fn(),

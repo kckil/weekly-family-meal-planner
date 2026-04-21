@@ -82,6 +82,39 @@ export function App() {
     });
   };
 
+  const handleSwap = (fromDay: string, fromRow: string, toDay: string, toRow: string) => {
+    setPlan(prev => {
+      if (!prev) return prev;
+      const next = { ...prev, days: prev.days.map(d => ({ ...d })) };
+      const fromIdx = next.days.findIndex(d => d.day === fromDay);
+      const toIdx = next.days.findIndex(d => d.day === toDay);
+      if (fromIdx < 0 || toIdx < 0) return prev;
+      const getSlot = (idx: number, r: string) => (next.days[idx] as Record<string, unknown>)[r] as string | null;
+      const setSlot = (idx: number, r: string, val: string | null) => { (next.days[idx] as Record<string, unknown>)[r] = val; };
+      const fromVal = getSlot(fromIdx, fromRow);
+      const toVal = getSlot(toIdx, toRow);
+      setSlot(fromIdx, fromRow, toVal);
+      setSlot(toIdx, toRow, fromVal);
+      // Update leftover flags for lunch swaps
+      if (fromRow === 'lunch') next.days[fromIdx].lunchIsLeftover = false;
+      if (toRow === 'lunch') next.days[toIdx].lunchIsLeftover = false;
+      // Update next-day leftover lunches for dinner swaps
+      if (fromRow === 'dinner') {
+        const nextFromIdx = fromIdx + 1;
+        if (nextFromIdx < next.days.length && next.days[nextFromIdx].lunchIsLeftover) {
+          next.days[nextFromIdx].lunch = toVal;
+        }
+      }
+      if (toRow === 'dinner') {
+        const nextToIdx = toIdx + 1;
+        if (nextToIdx < next.days.length && next.days[nextToIdx].lunchIsLeftover) {
+          next.days[nextToIdx].lunch = fromVal;
+        }
+      }
+      return next;
+    });
+  };
+
   const handleClear = (day: string, row: string) => {
     setPlan(prev => {
       if (!prev) return prev;
@@ -195,7 +228,7 @@ export function App() {
             plan={plan} meals={meals}
             dragState={dragState} setDragState={setDragState}
             filter={filter} setFilter={setFilter}
-            onDropMeal={handleDropMeal} onClear={handleClear}
+            onDropMeal={handleDropMeal} onClear={handleClear} onSwap={handleSwap}
             onRegenerate={regenerate} onFinalize={finalize}
             onClearAll={clearAll} onOpenLibrary={() => setTab('library')}/>
         )}

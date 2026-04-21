@@ -13,11 +13,12 @@ interface WeekGridProps {
   meals: Meal[];
   onDropMeal: (day: string, row: string, mealId: string) => void;
   onClear: (day: string, row: string) => void;
+  onSwap: (fromDay: string, fromRow: string, toDay: string, toRow: string) => void;
   dragState: DragState | null;
   setDragState: (s: DragState | null) => void;
 }
 
-export function WeekGrid({ plan, meals, onDropMeal, onClear, dragState }: WeekGridProps) {
+export function WeekGrid({ plan, meals, onDropMeal, onClear, onSwap, dragState, setDragState }: WeekGridProps) {
   const cols = '140px repeat(6, minmax(0, 1fr))';
   const rows = ['breakfast', 'lunch', 'dinner'];
   return (
@@ -51,7 +52,8 @@ export function WeekGrid({ plan, meals, onDropMeal, onClear, dragState }: WeekGr
           </div>
           {DAYS.map(d => (
             <Slot key={d + row} day={d} row={row} plan={plan} meals={meals}
-              onDropMeal={onDropMeal} onClear={onClear} dragState={dragState}/>
+              onDropMeal={onDropMeal} onClear={onClear} onSwap={onSwap}
+              dragState={dragState} setDragState={setDragState}/>
           ))}
         </div>
       ))}
@@ -59,11 +61,13 @@ export function WeekGrid({ plan, meals, onDropMeal, onClear, dragState }: WeekGr
   );
 }
 
-function Slot({ day, row, plan, meals, onDropMeal, onClear, dragState }: {
+function Slot({ day, row, plan, meals, onDropMeal, onClear, onSwap, dragState, setDragState }: {
   day: string; row: string; plan: WeeklyPlan; meals: Meal[];
   onDropMeal: (day: string, row: string, mealId: string) => void;
   onClear: (day: string, row: string) => void;
+  onSwap: (fromDay: string, fromRow: string, toDay: string, toRow: string) => void;
   dragState: DragState | null;
+  setDragState: (s: DragState | null) => void;
 }) {
   const dayPlan = plan.days.find(d => d.day === day);
   const [over, setOver] = useState(false);
@@ -81,6 +85,13 @@ function Slot({ day, row, plan, meals, onDropMeal, onClear, dragState }: {
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
     setOver(false);
+    const source = e.dataTransfer.getData('text/slot-source');
+    if (source) {
+      const [fromDay, fromRow] = source.split(':');
+      if (fromDay === day && fromRow === row) return;
+      onSwap(fromDay, fromRow, day, row);
+      return;
+    }
     const id = e.dataTransfer.getData('text/meal-id');
     if (!id) return;
     const m = meals.find(mm => mm.id === id);
@@ -88,6 +99,14 @@ function Slot({ day, row, plan, meals, onDropMeal, onClear, dragState }: {
     if (acceptsType && m.type !== acceptsType) return;
     onDropMeal(day, row, id);
   };
+
+  const onSlotDragStart = (e: DragEvent) => {
+    if (!mealId || !meal) return;
+    e.dataTransfer.setData('text/meal-id', mealId);
+    e.dataTransfer.setData('text/slot-source', `${day}:${row}`);
+    setDragState({ id: mealId, type: meal.type });
+  };
+  const onSlotDragEnd = () => setDragState(null);
 
   const height = 88;
 
@@ -112,21 +131,28 @@ function Slot({ day, row, plan, meals, onDropMeal, onClear, dragState }: {
   return (
     <div onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}
       style={{ position: 'relative', height, borderRadius: 10, outline: highlightDrop ? '2px solid var(--sage-ink)' : 'none', outlineOffset: 2 }}>
-      <SlotCard meal={meal} isLeftover={isLeftover} onClear={() => onClear(day, row)}/>
+      <SlotCard meal={meal} isLeftover={isLeftover} onClear={() => onClear(day, row)}
+        onDragStart={onSlotDragStart} onDragEnd={onSlotDragEnd}/>
     </div>
   );
 }
 
-function SlotCard({ meal, isLeftover, onClear }: { meal: Meal; isLeftover: boolean; onClear: () => void }) {
+function SlotCard({ meal, isLeftover, onClear, onDragStart, onDragEnd }: {
+  meal: Meal; isLeftover: boolean; onClear: () => void;
+  onDragStart: (e: DragEvent) => void; onDragEnd: () => void;
+}) {
   const [hover, setHover] = useState(false);
+  const canDrag = !isLeftover;
   return (
-    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+    <div draggable={canDrag} onDragStart={onDragStart} onDragEnd={onDragEnd}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{
         height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center',
         padding: '8px 10px',
         background: isLeftover ? 'var(--paper-2)' : 'var(--paper)',
         border: `1px solid ${isLeftover ? 'var(--line)' : 'var(--line-2)'}`,
         borderRadius: 10, boxShadow: hover ? 'var(--shadow-sm)' : 'none',
+        cursor: canDrag ? 'grab' : 'default',
         position: 'relative',
       }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
